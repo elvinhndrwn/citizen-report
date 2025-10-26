@@ -27,8 +27,8 @@ Sistem terdiri dari dua service utama:
 
 ### 1️⃣ Clone repository
 ```bash
-git clone https://github.com/<username>/<repository-name>.git
-cd <repository-name>
+git clone https://github.com/elvinhndrwn/citizen-report.git
+cd citizen-report
 ```
 
 ### 2️⃣ Build setiap service
