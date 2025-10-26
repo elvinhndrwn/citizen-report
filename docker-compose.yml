@@ -1,0 +1,82 @@
+version: '3.9'
+
+services:
+  # ================================
+  # 🐘 POSTGRES DATABASE
+  # ================================
+  postgres:
+    image: postgres:17.6
+    container_name: postgres-citizen-report
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: userdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - citizen-net
+
+  # ================================
+  # 🧱 USER SERVICE
+  # ================================
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/userdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: admin
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      - postgres
+    networks:
+      - citizen-net
+
+  # ================================
+  # 🧱 REPORT SERVICE
+  # ================================
+  report-service:
+    build: ./report-service
+    container_name: report-service
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/userdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: admin
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      - postgres
+    networks:
+      - citizen-net
+
+  # ================================
+  # 🌐 API GATEWAY
+  # ================================
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      user.service.url: http://user-service:8081
+      report.service.url: http://report-service:8082
+    depends_on:
+      - user-service
+      - report-service
+    networks:
+      - citizen-net
+
+# ================================
+# 🔗 NETWORK & VOLUME
+# ================================
+networks:
+  citizen-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
